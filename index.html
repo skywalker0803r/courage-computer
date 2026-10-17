@@ -468,33 +468,53 @@
           return;
         }
 
-        const lines = responses[normalized] || [
-          `指令未識別：${command}`,
-          '可用指令：help, status, launch, speak, clear'
-        ];
+        const aliasMap = {
+          help: /help|幫助|hilfe|assist/,
+          status: /status|狀態|檢查|system/,
+          launch: /launch|啟動|開機|boot|start/,
+          speak: /speak|說話|語音|voice|talk|說/,
+        };
+
+        const matchedKey = Object.entries(aliasMap).find(([, pattern]) => pattern.test(normalized));
+        const key = matchedKey ? matchedKey[0] : null;
+
+        const lines = key
+          ? responses[key]
+          : [
+              `已接收輸入：${command}`,
+              '英雄模式已開啟，這個系統不只接受預設指令，其他輸入也會被處理。',
+              '可用指令：help, status, launch, speak, clear'
+            ];
 
         lines.forEach((line) => appendOutput(line));
 
-        if (normalized === 'launch') {
+        if (key === 'launch') {
           setExpression('heroic');
           playComputeTone([220, 330, 490, 660]);
           return;
         }
 
-        if (normalized === 'status') {
+        if (key === 'status') {
           setExpression('focused');
           return;
         }
 
-        if (normalized === 'speak') {
+        if (key === 'speak') {
           setExpression('proud');
           const quote = responses.speak[Math.floor(Math.random() * responses.speak.length)];
           speakText(quote);
           return;
         }
 
-        if (normalized === 'help') {
+        if (key === 'help') {
           setExpression('shy');
+          return;
+        }
+
+        if (!key) {
+          setExpression(moods[Math.floor(Math.random() * moods.length)]);
+          const responseText = `${command}。這個輸入已被英雄系統接收，前端也會依照情緒自動調整反應。`;
+          speakText(responseText);
           return;
         }
 
@@ -521,7 +541,7 @@
 
       toggleSpeechBtn.addEventListener('click', () => {
         const current = toggleSpeechBtn.textContent.trim();
-        const enabled = current !== 'OFF';
+        const enabled = current === 'TTS';
         toggleSpeechBtn.textContent = enabled ? 'OFF' : 'TTS';
         voiceValue.textContent = enabled ? 'offline' : 'auto';
         if (!enabled) {
