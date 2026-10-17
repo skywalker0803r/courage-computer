@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>膽小狗英雄電腦</title>
+    <meta
+      name="description"
+      content="膽小狗英雄電腦：CRT 復古電腦風格單頁 Web 應用，搭配語音合成與音效系統。"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              crt: {
+                bg: '#07130f',
+                panel: '#0d211d',
+                green: '#7ef7b3',
+                mint: '#9ef7d4',
+                accent: '#d9ffd8',
+                warm: '#ffd29d',
+                amber: '#ffe595',
+                red: '#ff7e7e',
+                purple: '#af9cff'
+              }
+            },
+            boxShadow: {
+              crt: '0 0 0 1px rgba(126,247,179,0.4), 0 0 18px rgba(126,247,179,0.35)',
+              inner: 'inset 0 0 24px rgba(126,247,179,0.15)'
+            }
+          }
+        }
+      };
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=VT323&family=Share+Tech+Mono:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+      integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwUEQp3J3Y7C3bP4qGmZ+2LrNfLwYlA8CkW5zv2L8aLzUQ=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <style>
+      :root {
+        --bg-1: #05110d;
+        --bg-2: #0a1b17;
+        --crt-green: #7ef7b3;
+        --crt-green-soft: rgba(126, 247, 179, 0.18);
+        --crt-warm: #ffe595;
+        --crt-red: #ff8f8f;
+        --crt-purple: #b4a8ff;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+        background:
+          radial-gradient(circle at top, rgba(126, 247, 179, 0.18), transparent 30%),
+          linear-gradient(180deg, var(--bg-1), var(--bg-2));
+        color: var(--crt-green);
+        font-family: 'Share Tech Mono', monospace;
+      }
+
+      body::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background: repeating-linear-gradient(
+          to bottom,
+          rgba(255, 255, 255, 0.04),
+          rgba(255, 255, 255, 0.04) 2px,
+          transparent 2px,
+          transparent 4px
+        );
+        pointer-events: none;
+        opacity: 0.45;
+        mix-blend-mode: screen;
+      }
+
+      .crt-screen {
+        position: relative;
+        border: 1px solid rgba(126, 247, 179, 0.5);
+        background: rgba(10, 25, 21, 0.88);
+        box-shadow: 0 0 0 1px rgba(126, 247, 179, 0.4), 0 0 18px rgba(126, 247, 179, 0.25);
+        overflow: hidden;
+      }
+
+      .crt-screen::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          to bottom,
+          rgba(255, 255, 255, 0.08),
+          transparent 22%,
+          rgba(255, 255, 255, 0.02) 80%,
+          rgba(255, 255, 255, 0.08)
+        );
+        pointer-events: none;
+      }
+
+      .scanline {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          to bottom,
+          transparent 0%,
+          rgba(126, 247, 179, 0.08) 50%,
+          transparent 100%
+        );
+        background-size: 100% 6px;
+        pointer-events: none;
+        opacity: 0.75;
+      }
+
+      .vhs-flicker {
+        animation: flicker 0.14s infinite alternate;
+      }
+
+      @keyframes flicker {
+        0% { opacity: 0.98; }
+        20% { opacity: 0.96; }
+        40% { opacity: 0.92; }
+        60% { opacity: 0.97; }
+        100% { opacity: 0.99; }
+      }
+
+      .terminal-font {
+        font-family: 'VT323', monospace;
+        letter-spacing: 0.06em;
+      }
+
+      .mono-font {
+        font-family: 'Share Tech Mono', monospace;
+      }
+
+      .data-panel {
+        background: rgba(14, 31, 27, 0.8);
+        border: 1px solid rgba(126, 247, 179, 0.25);
+        box-shadow: inset 0 0 22px rgba(126, 247, 179, 0.08);
+      }
+
+      .pulse {
+        animation: pulse 1.5s ease-in-out infinite;
+      }
+
+      @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+      }
+
+      .face-svg {
+        filter: drop-shadow(0 0 18px rgba(126,247,179,0.25));
+      }
+
+      .frown {
+        transform-origin: center;
+      }
+      .blink {
+        transform-origin: center;
+      }
+    </style>
+  </head>
+  <body class="min-h-screen flex items-center justify-center px-4 py-10">
+    <div class="w-full max-w-6xl mx-auto crt-screen rounded-2xl p-4 sm:p-6 lg:p-8 vhs-flicker">
+      <div class="scanline"></div>
+      <header class="flex items-center justify-between gap-4 border-b border-[#6ff6b1]/30 pb-4">
+        <div>
+          <div class="text-xs uppercase tracking-[0.4em] text-[#9ef7d4]/80">Courage Computer</div>
+          <h1 class="terminal-font text-3xl sm:text-5xl text-[#bafdd9] mt-2">膽小狗英雄電腦</h1>
+        </div>
+        <div class="flex items-center gap-2 text-[#bafdd9]">
+          <span class="inline-flex h-3 w-3 rounded-full bg-[#7ef7b3] shadow-[0_0_12px_rgba(126,247,179,0.9)]"></span>
+          <span class="inline-flex h-3 w-3 rounded-full bg-[#ffe595] shadow-[0_0_8px_rgba(255,229,149,0.9)]"></span>
+          <span class="inline-flex h-3 w-3 rounded-full bg-[#ff8f8f] shadow-[0_0_8px_rgba(255,143,143,0.9)]"></span>
+        </div>
+      </header>
+
+      <main class="mt-6 grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+        <section class="data-panel rounded-xl p-4 sm:p-5">
+          <div class="flex items-center justify-between text-xs uppercase tracking-[0.3em] text-[#bafdd9]/70">
+            <span>System // CRT Console</span>
+            <span id="status-indicator" class="flex items-center gap-2">
+              <span class="pulse inline-block h-2.5 w-2.5 rounded-full bg-[#7ef7b3]"></span>
+              online
+            </span>
+          </div>
+
+          <div class="mt-4 h-80 overflow-y-auto rounded-lg border border-[#7ef7b3]/30 bg-[#061610]/80 p-4 shadow-inner">
+            <div id="output" class="mono-font text-sm leading-6 text-[#d3ffe7] whitespace-pre-wrap"></div>
+          </div>
+
+          <div class="mt-4 flex flex-col gap-3 sm:flex-row">
+            <input
+              id="command-input"
+              type="text"
+              value="help"
+              class="mono-font flex-1 rounded-lg border border-[#7ef7b3]/35 bg-[#071d17] px-3 py-3 text-[#d9ffe7] placeholder:text-[#7ef7b3]/40 focus:border-[#7ef7b3] focus:outline-none"
+              placeholder="輸入指令..."
+              aria-label="輸入命令"
+            />
+            <button id="run-btn" class="rounded-lg border border-[#7ef7b3]/40 bg-[#14392c] px-4 py-3 text-sm uppercase tracking-[0.2em] text-[#d9ffe7] transition hover:bg-[#1a4e39]">
+              execute
+            </button>
+          </div>
+
+          <div class="mt-4 flex flex-wrap gap-2 text-[11px] uppercase tracking-[0.15em]">
+            <button class="command-chip rounded border border-[#7ef7b3]/25 bg-[#11251d] px-2.5 py-1.5 text-[#d0ffea] hover:border-[#7ef7b3]/60" data-command="help">help</button>
+            <button class="command-chip rounded border border-[#7ef7b3]/25 bg-[#11251d] px-2.5 py-1.5 text-[#d0ffea] hover:border-[#7ef7b3]/60" data-command="status">status</button>
+            <button class="command-chip rounded border border-[#7ef7b3]/25 bg-[#11251d] px-2.5 py-1.5 text-[#d0ffea] hover:border-[#7ef7b3]/60" data-command="launch">launch</button>
+            <button class="command-chip rounded border border-[#7ef7b3]/25 bg-[#11251d] px-2.5 py-1.5 text-[#d0ffea] hover:border-[#7ef7b3]/60" data-command="speak">speak</button>
+          </div>
+        </section>
+
+        <aside class="space-y-6">
+          <div class="data-panel rounded-xl p-4 sm:p-5">
+            <div class="flex items-center justify-between text-xs uppercase tracking-[0.3em] text-[#bafdd9]/70">
+              <span>Avatar // expression</span>
+              <button id="toggle-speech" class="rounded border border-[#7ef7b3]/35 bg-[#11251d] px-2 py-1 text-[10px] uppercase tracking-[0.18em] text-[#d9ffe7] hover:border-[#7ef7b3]/60">
+                TTS
+              </button>
+            </div>
+
+            <div class="mt-4 flex justify-center rounded-lg border border-[#7ef7b3]/25 bg-[#071914] p-4">
+              <svg id="face-svg" class="face-svg h-52 w-52" viewBox="0 0 240 240" aria-label="英雄電腦表情">
+                <defs>
+                  <linearGradient id="screenGlow" x1="0" x2="1">
+                    <stop offset="0%" stop-color="#7ef7b3" stop-opacity="0.95" />
+                    <stop offset="100%" stop-color="#9bf7d7" stop-opacity="0.95" />
+                  </linearGradient>
+                </defs>
+                <circle cx="120" cy="120" r="104" fill="rgba(126,247,179,0.06)" stroke="rgba(126,247,179,0.55)" stroke-width="2"/>
+                <path id="ear-left" d="M40 112 Q30 95 34 76 Q46 78 52 98 Z" fill="rgba(126,247,179,0.14)"/>
+                <path id="ear-right" d="M200 112 Q210 95 206 76 Q194 78 188 98 Z" fill="rgba(126,247,179,0.14)"/>
+                <circle cx="120" cy="120" r="74" fill="rgba(13, 33, 29, 0.7)" stroke="url(#screenGlow)" stroke-width="2"/>
+                <g id="eyes-group">
+                  <ellipse id="eye-left" cx="90" cy="108" rx="18" ry="11" fill="#dfffe6"/>
+                  <ellipse id="eye-right" cx="150" cy="108" rx="18" ry="11" fill="#dfffe6"/>
+                  <circle id="pupil-left" cx="90" cy="108" r="5" fill="#07130f"/>
+                  <circle id="pupil-right" cx="150" cy="108" r="5" fill="#07130f"/>
+                </g>
+                <path id="mouth" d="M84 148 Q120 176 156 148" fill="none" stroke="#dfffe6" stroke-width="4" stroke-linecap="round"/>
+                <path id="mouth-anger" d="M82 154 Q120 130 158 154" fill="none" stroke="#ff8f8f" stroke-width="4" stroke-linecap="round" style="display:none"/>
+                <path id="mouth-smile" d="M82 152 Q120 190 158 152" fill="none" stroke="#7ef7b3" stroke-width="4" stroke-linecap="round" style="display:none"/>
+                <path id="brow-left" d="M62 86 Q90 76 110 88" fill="none" stroke="#ffe595" stroke-width="4" stroke-linecap="round"/>
+                <path id="brow-right" d="M130 88 Q150 76 178 86" fill="none" stroke="#ffe595" stroke-width="4" stroke-linecap="round"/>
+              </svg>
+            </div>
+          </div>
+
+          <div class="data-panel rounded-xl p-4 sm:p-5">
+            <div class="text-xs uppercase tracking-[0.3em] text-[#bafdd9]/70">System Stats</div>
+            <div class="mt-4 grid grid-cols-2 gap-3 text-sm mono-font">
+              <div class="rounded border border-[#7ef7b3]/20 bg-[#081c17] p-3">
+                <div class="text-[#8cebb4]">mode</div>
+                <div id="mode-value" class="mt-2 text-lg text-[#e8fff1]">hero</div>
+              </div>
+              <div class="rounded border border-[#7ef7b3]/20 bg-[#081c17] p-3">
+                <div class="text-[#8cebb4]">voice</div>
+                <div id="voice-value" class="mt-2 text-lg text-[#e8fff1]">auto</div>
+              </div>
+              <div class="rounded border border-[#7ef7b3]/20 bg-[#081c17] p-3">
+                <div class="text-[#8cebb4]">mood</div>
+                <div id="mood-value" class="mt-2 text-lg text-[#e8fff1]">proud</div>
+              </div>
+              <div class="rounded border border-[#7ef7b3]/20 bg-[#081c17] p-3">
+                <div class="text-[#8cebb4]">power</div>
+                <div id="power-value" class="mt-2 text-lg text-[#e8fff1]">88%</div>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </main>
+    </div>
+
+    <script>
+      const output = document.getElementById('output');
+      const commandInput = document.getElementById('command-input');
+      const runBtn = document.getElementById('run-btn');
+      const toggleSpeechBtn = document.getElementById('toggle-speech');
+      const modeValue = document.getElementById('mode-value');
+      const voiceValue = document.getElementById('voice-value');
+      const moodValue = document.getElementById('mood-value');
+      const powerValue = document.getElementById('power-value');
+
+      const responses = {
+        help: [
+          '系統清單：help, status, launch, speak, clear',
+          '指令可用：檢測英雄狀態、啟動 CRT 顯示器、播放傲嬌配音。',
+          '語音模組採用 Web Speech API，音色帶有低沉壓低氣場。'
+        ],
+        status: [
+          '機體狀態：英雄模式啟動。',
+          'CPU：88% / RAM：72% / 信心：unlimited',
+          'CRT 螢幕：穩定 / 音效：正常 / 傲嬌發聲：已就緒'
+        ],
+        launch: [
+          '啟動中... CRT 主控台已恢復正常。',
+          '視覺系統：復古屏幕已完成校準。',
+          '語音系統：酸民配音準備完畢，請開始做事。'
+        ],
+        speak: [
+          '「哼，這點小事我本來就會做。」',
+          '「不要用那種表情看我，我可是英雄。」',
+          '「這不是我在賣萌，是系統自動生成的高品質傲嬌。」'
+        ],
+        clear: ['<clear>']
+      };
+
+      const moods = ['proud', 'shy', 'angry', 'heroic', 'focused'];
+      const expressionStates = {
+        proud: {
+          eyes: { left: [90, 108], right: [150, 108], pupil: [90, 108], pupilR: [150, 108] },
+          brow: { left: 'M62 86 Q90 76 110 88', right: 'M130 88 Q150 76 178 86' },
+          mouth: 'M84 148 Q120 176 156 148',
+          mouthSmile: 'display:none',
+          mouthAnger: 'display:none',
+          color: '#7ef7b3'
+        },
+        shy: {
+          eyes: { left: [90, 112], right: [150, 112], pupil: [90, 114], pupilR: [150, 114] },
+          brow: { left: 'M60 90 Q90 102 110 90', right: 'M130 90 Q150 102 180 90' },
+          mouth: 'M84 156 Q120 146 156 156',
+          mouthSmile: 'display:block',
+          mouthAnger: 'display:none',
+          color: '#ffe595'
+        },
+        angry: {
+          eyes: { left: [90, 106], right: [150, 106], pupil: [90, 108], pupilR: [150, 108] },
+          brow: { left: 'M62 84 Q90 66 110 88', right: 'M130 88 Q150 66 178 84' },
+          mouth: 'M84 150 Q120 136 156 150',
+          mouthSmile: 'display:none',
+          mouthAnger: 'display:block',
+          color: '#ff8f8f'
+        },
+        heroic: {
+          eyes: { left: [90, 106], right: [150, 106], pupil: [90, 106], pupilR: [150, 106] },
+          brow: { left: 'M62 86 Q90 72 110 86', right: 'M130 86 Q150 72 178 86' },
+          mouth: 'M84 148 Q120 178 156 148',
+          mouthSmile: 'display:none',
+          mouthAnger: 'display:none',
+          color: '#9ef7d4'
+        },
+        focused: {
+          eyes: { left: [90, 108], right: [150, 108], pupil: [90, 108], pupilR: [150, 108] },
+          brow: { left: 'M64 88 Q90 80 110 90', right: 'M130 90 Q150 80 176 88' },
+          mouth: 'M90 152 Q120 156 150 152',
+          mouthSmile: 'display:none',
+          mouthAnger: 'display:none',
+          color: '#b4a8ff'
+        }
+      };
+
+      const eyeLeft = document.getElementById('eye-left');
+      const eyeRight = document.getElementById('eye-right');
+      const pupilLeft = document.getElementById('pupil-left');
+      const pupilRight = document.getElementById('pupil-right');
+      const browLeft = document.getElementById('brow-left');
+      const browRight = document.getElementById('brow-right');
+      const mouth = document.getElementById('mouth');
+      const mouthSmile = document.getElementById('mouth-smile');
+      const mouthAnger = document.getElementById('mouth-anger');
+
+      function appendOutput(text) {
+        if (text === '<clear>') {
+          output.innerHTML = '';
+          return;
+        }
+        const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        output.innerHTML += `<div>[$time] ${text}</div>`;
+        output.scrollTop = output.scrollHeight;
+      }
+
+      function playTypingTone() {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const audioCtx = new AudioCtx();
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        oscillator.type = 'square';
+        oscillator.frequency.setValueAtTime(900, audioCtx.currentTime);
+        gainNode.gain.setValueAtTime(0.02, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.08);
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        oscillator.start();
+        oscillator.stop(audioCtx.currentTime + 0.08);
+      }
+
+      function playComputeTone(sequence = [240, 340, 480]) {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const audioCtx = new AudioCtx();
+        const now = audioCtx.currentTime;
+        sequence.forEach((freq, index) => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, now + index * 0.08);
+          gain.gain.setValueAtTime(0.018, now + index * 0.08);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + index * 0.08 + 0.12);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(now + index * 0.08);
+          osc.stop(now + index * 0.08 + 0.12);
+        });
+      }
+
+      function setExpression(name) {
+        const state = expressionStates[name] || expressionStates.proud;
+        // eyes
+        eyeLeft.setAttribute('cx', state.eyes.left[0]);
+        eyeRight.setAttribute('cx', state.eyes.right[0]);
+        eyeLeft.setAttribute('cy', state.eyes.left[1]);
+        eyeRight.setAttribute('cy', state.eyes.right[1]);
+        pupilLeft.setAttribute('cx', state.eyes.pupil[0]);
+        pupilRight.setAttribute('cx', state.eyes.pupilR[0]);
+        pupilLeft.setAttribute('cy', state.eyes.pupil[1]);
+        pupilRight.setAttribute('cy', state.eyes.pupilR[1]);
+        browLeft.setAttribute('d', state.brow.left);
+        browRight.setAttribute('d', state.brow.right);
+        mouth.setAttribute('d', state.mouth);
+        mouthSmile.style.display = state.mouthSmile;
+        mouthAnger.style.display = state.mouthAnger;
+        modeValue.textContent = name;
+        moodValue.textContent = name;
+        powerValue.textContent = `${Math.max(60, 88 + Math.random() * 12).toFixed(0)}%`;
+      }
+
+      function speakText(text) {
+        if (!('speechSynthesis' in window)) {
+          appendOutput('Browser 不支援 Web Speech API，語音功能未啟用。');
+          return;
+        }
+        const u = new SpeechSynthesisUtterance(text);
+        const voices = window.speechSynthesis.getVoices();
+        const preferred = voices.find((voice) => /zh|taiwan|hans|mandarin/i.test(voice.lang)) || voices[0] || null;
+        if (preferred) u.voice = preferred;
+        u.rate = 0.95;
+        u.pitch = 0.7;
+        u.volume = 1;
+        speechSynthesis.cancel();
+        speechSynthesis.speak(u);
+      }
+
+      function executeCommand(command) {
+        const normalized = command.trim().toLowerCase();
+        if (!normalized) return;
+
+        playTypingTone();
+        appendOutput(`> ${command}`);
+
+        if (normalized === 'clear') {
+          output.innerHTML = '';
+          commandInput.value = '';
+          return;
+        }
+
+        const lines = responses[normalized] || [
+          `指令未識別：${command}`,
+          '可用指令：help, status, launch, speak, clear'
+        ];
+
+        lines.forEach((line) => appendOutput(line));
+
+        if (normalized === 'launch') {
+          setExpression('heroic');
+          playComputeTone([220, 330, 490, 660]);
+          return;
+        }
+
+        if (normalized === 'status') {
+          setExpression('focused');
+          return;
+        }
+
+        if (normalized === 'speak') {
+          setExpression('proud');
+          const quote = responses.speak[Math.floor(Math.random() * responses.speak.length)];
+          speakText(quote);
+          return;
+        }
+
+        if (normalized === 'help') {
+          setExpression('shy');
+          return;
+        }
+
+        setExpression(moods[Math.floor(Math.random() * moods.length)]);
+      }
+
+      runBtn.addEventListener('click', () => {
+        executeCommand(commandInput.value);
+      });
+
+      commandInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+          executeCommand(commandInput.value);
+        }
+      });
+
+      document.querySelectorAll('.command-chip').forEach((chip) => {
+        chip.addEventListener('click', () => {
+          const cmd = chip.dataset.command;
+          commandInput.value = cmd;
+          executeCommand(cmd);
+        });
+      });
+
+      toggleSpeechBtn.addEventListener('click', () => {
+        const current = toggleSpeechBtn.textContent.trim();
+        const enabled = current !== 'OFF';
+        toggleSpeechBtn.textContent = enabled ? 'OFF' : 'TTS';
+        voiceValue.textContent = enabled ? 'offline' : 'auto';
+        if (!enabled) {
+          window.speechSynthesis.cancel();
+          appendOutput('語音系統已靜音。');
+        } else {
+          const line = '哼，這種低調的發聲方式，還是讓我來接管。';
+          speakText(line);
+          appendOutput('語音系統已恢復。');
+        }
+      });
+
+      setExpression('proud');
+      appendOutput('WELCOME TO COURAGE COMPUTER');
+      appendOutput('系統登入成功，英雄模式已啟動。');
+      appendOutput('輸入 help 以檢視指令列表。');
+      appendOutput('');
+      if ('speechSynthesis' in window) {
+        voiceValue.textContent = 'auto';
+      } else {
+        voiceValue.textContent = 'offline';
+      }
+    </script>
+  </body>
+</html>
